@@ -6,10 +6,12 @@ ABAIKAN BLOCK CODE INI
 const Restriction = require('hacktiv8-restriction')
 const { execSync } = require('child_process')
 const fs = require('fs')
+const checkRestriction = require('hacktiv8-restriction')
+const solutionPath = '../index.js'
 
 const reconstructedFilename = 'reconstructed.js'
 
-const grade = (nama, nilai, absen) => {
+const grade = (nama, nilai) => {
   let solution = fs.readFileSync('./index.js', 'utf-8')
 
   solution = solution.replace(
@@ -18,7 +20,6 @@ const grade = (nama, nilai, absen) => {
     `$1 nama = ${typeof nama === 'string' ? `"${nama}"` : nama}`
   )
   solution = solution.replace(/(let|var) nilai .*/, `$1 nilai = ${nilai}`)
-  solution = solution.replace(/(let|var) absen .*/, `$1 absen = ${absen}`)
 
   fs.writeFileSync(reconstructedFilename, solution)
 
@@ -41,45 +42,48 @@ ABAIKAN BLOCK CODE INI
 PASTIKAN SOLUSI YANG DITULIS SESUAI DENGAN SKENARIO DIBAWAH INI
 ========================================================================================================
 */
-describe('Graduates', () => {
-  describe('Tes tidak lulus', () => {
-    it('should show tidak lulus when nilai < 70 (15)', () => {
-      let [nama, nilai, absen] =  ["Hana", 69, 3]
-      expect(grade(nama, nilai, absen)).toContain("tidak lulus")
-      expect(grade(nama, nilai, absen)).toContain(nama)
-    })
-    it('should show tidak lulus when absen 5 kali (15)', () => {
-      let [nama, nilai, absen] =  ["Ananda", 89, 5]
-      expect(grade(nama, nilai, absen)).toContain("tidak lulus")
-      expect(grade(nama, nilai, absen)).toContain(nama)
-    })
-    it('should show tidak lulus when nilai < 70 dan absen >= 5 (20)', () => {
-      let [nama, nilai, absen] =  ["Gilang", 69, 7]
-      expect(grade(nama, nilai, absen)).toContain("tidak lulus")
-      expect(grade(nama, nilai, absen)).toContain(nama)
-    })
-  })
-  describe('Test lulus', () => {
-    it('should show lulus when nilai 70 absen 3 (25)', () => {
-      let [nama, nilai, absen] =  ["Hani", 70, 3]
-      let hasil = grade(nama, nilai, absen)
-      expect(hasil).toContain("lulus")
-      expect(hasil.toLowerCase().includes("tidak lulus")).toBe(false)
-      expect(hasil).toContain(nama)
-    })
-    it('should show lulus when nilai 90 absen 0 (25)', () => {
-      let [nama, nilai, absen] =  ["Ivanka", 90, 0]
-      let hasil = grade(nama, nilai, absen)
-      expect(hasil).toContain("lulus")
-      expect(hasil.toLowerCase().includes("tidak lulus")).toBe(false)
-      expect(hasil).toContain(nama)
-    })
-  })
-
+describe('Grade Students', () => {
   it('should check restriction rules (-30)', async () => {
     const checkRestriction = new Restriction('../index.js');
     checkRestriction.rules = ['match', 'split', 'concat', 'pop', 'push', 'unshift', 'shift'];
     const restrictedUse = await checkRestriction.readCode();
     expect(restrictedUse).toBe(null);
   });
+
+  it('Should print "Nilai Invalid" if score out of range 0-100 (20)', () => {
+    const student1 = 'Andhika'
+    const student2 = 'Andhiki'
+    const score1 = -1
+    const score2 = 101
+
+    const result1 = grade(student1, score1)
+    const result2 = grade(student2, score2)
+
+    expect(result1).toMatch('Nilai Invalid')
+    expect(result2).toMatch('Nilai Invalid')
+  })
+
+  it('should print the correct result (80)', () => {
+    const student1 = 'Andhika'
+    const student2 = 'Robert'
+    const student3 = 'Ajeng'
+    const student4 = 'Aryo'
+    const student5 = 'Riki'
+    const score1 = 100
+    const score2 = 66
+    const score3 = 50
+    const score4 = 49
+    const score5 = 0
+    const result1 = grade(student1, score1)
+    const result2 = grade(student2, score2)
+    const result3 = grade(student3, score3)
+    const result4 = grade(student4, score4)
+    const result5 = grade(student5, score5)
+
+    expect(result1).toMatch('nama: Andhika; score: A')
+    expect(result2).toMatch('nama: Robert; score: B')
+    expect(result3).toMatch('nama: Ajeng; score: C')
+    expect(result4).toMatch('nama: Aryo; score: D')
+    expect(result5).toMatch('nama: Riki; score: E')
+  })
 })
